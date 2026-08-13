@@ -367,11 +367,11 @@ class PullRequestPlannerTests(unittest.TestCase):
         first = self.pr.plan_pull_request(self.report, self.markdown, existing, "main", head)
         second = self.pr.plan_pull_request(self.report, self.markdown, existing, "main", head)
         self.assertEqual(first, second)
-        self.assertEqual([item["operation"] for item in first], ["close", "update"])
+        self.assertEqual([item["operation"] for item in first], ["close", "close", "update"])
         self.assertEqual(first[-1]["number"], 9)
         self.assertEqual(first[-1]["title"], "sync/upstream-111111111111")
         self.assertNotIn("merge", [item["operation"] for item in first])
-        self.assertNotIn(13, [item.get("number") for item in first])
+        self.assertIn(13, [item.get("number") for item in first if item["operation"] == "close"])
 
     def test_missing_sync_pr_creates_exactly_one_from_fork_branch(self) -> None:
         head = "evgyur:sync/upstream-111111111111"

@@ -234,8 +234,9 @@ def plan_pull_request(
     matching_head = [pull for pull in sync_prs if pull.get("head", {}).get("label") == head]
     keeper = matching_head[0] if matching_head else None
     operations: list[dict[str, Any]] = []
-    for duplicate in matching_head[1:]:
-        operations.append({"operation": "close", "number": int(duplicate["number"])})
+    for duplicate in sync_prs:
+        if duplicate is not keeper:
+            operations.append({"operation": "close", "number": int(duplicate["number"])})
     if keeper is not None:
         operations.append(
             {
