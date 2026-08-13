@@ -96,6 +96,12 @@ def verify() -> dict[str, object]:
         raise VerificationError("SOURCE_REV mismatch")
 
     source_contract = require_object(manifest.get("source_contract"), "source_contract")
+    if source_contract.get("package") != "xai-grok-pager-bin":
+        raise VerificationError("package contract mismatch")
+    if source_contract.get("package_version") != "1.0.3":
+        raise VerificationError("package version contract mismatch")
+    if source_contract.get("rust_toolchain") != "1.94.0":
+        raise VerificationError("Rust toolchain contract mismatch")
     if source_contract.get("license") != "Apache-2.0":
         raise VerificationError("license contract mismatch")
     if source_contract.get("build_container") != BUILD_CONTAINER:

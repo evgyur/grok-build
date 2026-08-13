@@ -113,6 +113,39 @@ class BootstrapVerifierTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "preserved file mismatch"):
                 self.configured_module(root).verify()
 
+    def test_wrong_package_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest = self.fixture(root)
+            source_contract = manifest["source_contract"]
+            assert isinstance(source_contract, dict)
+            source_contract["package"] = "wrong-package"
+            root.joinpath(".chip", "provenance.json").write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(RuntimeError, "package contract mismatch"):
+                self.configured_module(root).verify()
+
+    def test_wrong_package_version_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest = self.fixture(root)
+            source_contract = manifest["source_contract"]
+            assert isinstance(source_contract, dict)
+            source_contract["package_version"] = "9.9.9"
+            root.joinpath(".chip", "provenance.json").write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(RuntimeError, "package version contract mismatch"):
+                self.configured_module(root).verify()
+
+    def test_wrong_rust_toolchain_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest = self.fixture(root)
+            source_contract = manifest["source_contract"]
+            assert isinstance(source_contract, dict)
+            source_contract["rust_toolchain"] = "nightly"
+            root.joinpath(".chip", "provenance.json").write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(RuntimeError, "Rust toolchain contract mismatch"):
+                self.configured_module(root).verify()
+
     def test_wrong_build_container_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
