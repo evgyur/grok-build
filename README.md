@@ -38,6 +38,12 @@ for the version of the code present in this tree.
 
 ---
 
+> [!IMPORTANT]
+> This is the `evgyur/grok-build` fork. Its reviewed source baseline, fork-only
+> policy, and non-release status are documented in [NOTICE-CHIP.md](NOTICE-CHIP.md).
+> The official SpaceXAI binary installer below does **not** install this fork.
+> Fork binaries are never activated by cloning this repository.
+
 ## Installing the released binary
 
 Prebuilt binaries are published for macOS, Linux, and Windows:

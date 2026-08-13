@@ -20,6 +20,7 @@ REQUIRED = [
 COMMIT = "a" * 40
 TREE = "b" * 40
 SOURCE_REV = "c" * 40
+BUILD_CONTAINER = "docker.io/library/rust@sha256:365468470075493dc4583f47387001854321c5a8583ea9604b297e67f01c5a4f"
 
 
 def load_module() -> ModuleType:
@@ -56,6 +57,7 @@ class BootstrapVerifierTests(unittest.TestCase):
                 "package": "xai-grok-pager-bin",
                 "package_version": "1.0.3",
                 "rust_toolchain": "1.94.0",
+                "build_container": BUILD_CONTAINER,
                 "license": "Apache-2.0",
                 "behavioral_patches": 0,
             },
@@ -84,6 +86,8 @@ class BootstrapVerifierTests(unittest.TestCase):
                         ".chip/provenance.json",
                         ".github/workflows/chip-bootstrap.yml",
                         "NOTICE-CHIP.md",
+                        "README.md",
+                        "SECURITY-CHIP.md",
                         "scripts/chip/verify_bootstrap.py",
                         "tests/chip/test_verify_bootstrap.py",
                     ]
@@ -107,6 +111,17 @@ class BootstrapVerifierTests(unittest.TestCase):
             self.fixture(root)
             root.joinpath("LICENSE").write_text("tampered\n")
             with self.assertRaisesRegex(RuntimeError, "preserved file mismatch"):
+                self.configured_module(root).verify()
+
+    def test_wrong_build_container_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest = self.fixture(root)
+            source_contract = manifest["source_contract"]
+            assert isinstance(source_contract, dict)
+            source_contract["build_container"] = "docker.io/library/rust:latest"
+            root.joinpath(".chip", "provenance.json").write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(RuntimeError, "build container contract mismatch"):
                 self.configured_module(root).verify()
 
     def test_boolean_schema_is_rejected(self) -> None:

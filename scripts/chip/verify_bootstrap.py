@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 PROVENANCE = ROOT / ".chip" / "provenance.json"
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+BUILD_CONTAINER = "docker.io/library/rust@sha256:365468470075493dc4583f47387001854321c5a8583ea9604b297e67f01c5a4f"
 
 
 class VerificationError(RuntimeError):
@@ -79,6 +80,8 @@ def verify() -> dict[str, object]:
         ".chip/provenance.json",
         ".github/workflows/chip-bootstrap.yml",
         "NOTICE-CHIP.md",
+        "README.md",
+        "SECURITY-CHIP.md",
         "scripts/chip/verify_bootstrap.py",
         "tests/chip/test_verify_bootstrap.py",
     }
@@ -95,6 +98,8 @@ def verify() -> dict[str, object]:
     source_contract = require_object(manifest.get("source_contract"), "source_contract")
     if source_contract.get("license") != "Apache-2.0":
         raise VerificationError("license contract mismatch")
+    if source_contract.get("build_container") != BUILD_CONTAINER:
+        raise VerificationError("build container contract mismatch")
     if type(source_contract.get("behavioral_patches")) is not int or source_contract["behavioral_patches"] != 0:
         raise VerificationError("bootstrap must contain zero behavioral patches")
 

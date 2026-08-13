@@ -15,6 +15,7 @@
     "package": "xai-grok-pager-bin",
     "package_version": "1.0.3",
     "rust_toolchain": "1.94.0",
+    "build_container": "docker.io/library/rust@sha256:365468470075493dc4583f47387001854321c5a8583ea9604b297e67f01c5a4f",
     "license": "Apache-2.0",
     "behavioral_patches": 0
   },

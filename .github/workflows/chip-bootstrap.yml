@@ -26,4 +26,28 @@ jobs:
       - name: Verify exact upstream provenance
         run: python3 scripts/chip/verify_bootstrap.py
       - name: Diff hygiene
-        run: git diff --check HEAD^
+        run: git diff --check "$(python3 -c 'import json; print(json.load(open(".chip/provenance.json"))["upstream"]["public_commit"])')"
+
+  check-unmodified-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: docker.io/library/rust@sha256:365468470075493dc4583f47387001854321c5a8583ea9604b297e67f01c5a4f
+    env:
+      RUSTUP_TOOLCHAIN: 1.94.0-x86_64-unknown-linux-gnu
+    steps:
+      - name: Install source-build prerequisites
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl git pkg-config protobuf-compiler libssl-dev
+      - name: Checkout exact candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify pinned source identity
+        run: python3 scripts/chip/verify_bootstrap.py
+      - name: Install locked DotSlash
+        run: cargo install --locked dotslash
+      - name: Check unmodified source
+        run: cargo check --locked -p xai-grok-pager-bin
