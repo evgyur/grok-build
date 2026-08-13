@@ -1,0 +1,29 @@
+name: chip-bootstrap
+
+on:
+  push:
+    branches: [main, chip/bootstrap]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-source-bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Python syntax
+        run: python3 -m py_compile scripts/chip/verify_bootstrap.py tests/chip/test_verify_bootstrap.py
+      - name: Bootstrap verifier tests
+        run: python3 -m unittest -v tests/chip/test_verify_bootstrap.py
+      - name: Verify exact upstream provenance
+        run: python3 scripts/chip/verify_bootstrap.py
+      - name: Diff hygiene
+        run: git diff --check HEAD^

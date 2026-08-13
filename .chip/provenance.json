@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "distribution": "chip",
+  "status": "source-bootstrap-not-released",
+  "repository": "https://github.com/evgyur/grok-build",
+  "upstream": {
+    "repository": "https://github.com/xai-org/grok-build",
+    "public_commit": "e5fd4816d43260c15ba785f103990c1ed6cea230",
+    "public_tree": "25eefa9bdb3a4748cc065be3fa8200d04bc54493",
+    "source_rev": "ea094a8c369475f97c85540d01730baec0dce5d6",
+    "fetched_at": "2026-08-13T16:38:24+03:00",
+    "commit_verified_by_github": false
+  },
+  "source_contract": {
+    "package": "xai-grok-pager-bin",
+    "package_version": "1.0.3",
+    "rust_toolchain": "1.94.0",
+    "license": "Apache-2.0",
+    "behavioral_patches": 0
+  },
+  "preserved_files": {
+    "Cargo.lock": {
+      "sha256": "9ee55469c80f9091a03ed05b4f4958751b269c3fcd6d40570908db8389819b14",
+      "bytes": 349955
+    },
+    "LICENSE": {
+      "sha256": "116f7778b9802e569b7fa3a532b17bd80eb13c67837def01eed093d4ea472f28",
+      "bytes": 11388
+    },
+    "SOURCE_REV": {
+      "sha256": "55ef2f835729a599e471d61178cd6d32f5586042bc779441c71aa191c3c25732",
+      "bytes": 41
+    },
+    "THIRD-PARTY-NOTICES": {
+      "sha256": "7b7c315403c596f9b7a13bb562553ee4fd4c05da8672f95bcaa02a125eea2947",
+      "bytes": 762520
+    },
+    "crates/codegen/xai-grok-tools/THIRD_PARTY_NOTICES.md": {
+      "sha256": "e8785a6098a7ee780cd2db35745b8e53061cfb1b6da19147a308579466ea4e50",
+      "bytes": 7995
+    },
+    "rust-toolchain.toml": {
+      "sha256": "32a47ba7c3bcc9063bd056b833d12d51b628a38862b499fb4388d22c58cd64ca",
+      "bytes": 624
+    }
+  }
+}
