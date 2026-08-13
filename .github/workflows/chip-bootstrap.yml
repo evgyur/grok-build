@@ -20,9 +20,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Python syntax
-        run: python3 -m py_compile scripts/chip/verify_bootstrap.py tests/chip/test_verify_bootstrap.py
-      - name: Bootstrap verifier tests
-        run: python3 -m unittest -v tests/chip/test_verify_bootstrap.py
+        run: python3 -m py_compile scripts/chip/*.py tests/chip/*.py
+      - name: Chip policy tests
+        run: python3 -m unittest -v tests/chip/test_verify_bootstrap.py tests/chip/test_upstream_sync.py
       - name: Verify exact upstream provenance
         run: python3 scripts/chip/verify_bootstrap.py
       - name: Diff hygiene

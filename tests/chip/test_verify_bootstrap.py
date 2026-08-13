@@ -87,10 +87,14 @@ class BootstrapVerifierTests(unittest.TestCase):
                     [
                         ".chip/provenance.json",
                         ".github/workflows/chip-bootstrap.yml",
+                        ".github/workflows/chip-upstream-sync.yml",
                         "NOTICE-CHIP.md",
                         "README.md",
                         "SECURITY-CHIP.md",
+                        "scripts/chip/upstream_sync.py",
+                        "scripts/chip/upstream_sync_pr.py",
                         "scripts/chip/verify_bootstrap.py",
+                        "tests/chip/test_upstream_sync.py",
                         "tests/chip/test_verify_bootstrap.py",
                     ]
                 )

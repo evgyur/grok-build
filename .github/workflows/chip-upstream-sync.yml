@@ -1,0 +1,51 @@
+name: chip-controlled-upstream-sync
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: chip-controlled-upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout accepted source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch public upstream candidate into independent repository
+        run: |
+          git clone --quiet --no-checkout --filter=blob:none \
+            https://github.com/xai-org/grok-build.git "$RUNNER_TEMP/candidate"
+          git -C "$RUNNER_TEMP/candidate" fetch --quiet --no-tags origin main
+      - name: Compare source and dry-run patch replay
+        run: |
+          python3 scripts/chip/upstream_sync.py \
+            --accepted-repo . \
+            --candidate-repo "$RUNNER_TEMP/candidate" \
+            --candidate-ref FETCH_HEAD \
+            --json upstream-sync-report.json \
+            --markdown upstream-sync-report.md
+      - name: Create or update the single review pull request
+        if: ${{ hashFiles('upstream-sync-report.json') != '' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/chip/upstream_sync_pr.py \
+            --report upstream-sync-report.json \
+            --markdown upstream-sync-report.md \
+            --accepted-repo . \
+            --candidate-repo "$RUNNER_TEMP/candidate" \
+            --repository "$GITHUB_REPOSITORY" \
+            --base main \
+            --fork-owner evgyur
