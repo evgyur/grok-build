@@ -9,6 +9,8 @@ from pathlib import Path
 from types import ModuleType
 
 SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "chip" / "verify_bootstrap.py"
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "chip-bootstrap.yml"
 REQUIRED = [
     "Cargo.lock",
     "LICENSE",
@@ -112,6 +114,13 @@ class BootstrapVerifierTests(unittest.TestCase):
             root.joinpath("LICENSE").write_text("tampered\n")
             with self.assertRaisesRegex(RuntimeError, "preserved file mismatch"):
                 self.configured_module(root).verify()
+
+    def test_container_source_job_marks_checkout_safe_before_verifier(self) -> None:
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        job = workflow.split("  check-unmodified-source:\n", 1)[1]
+        safe = job.index("git config --global --add safe.directory \"$GITHUB_WORKSPACE\"")
+        verify = job.index("python3 scripts/chip/verify_bootstrap.py")
+        self.assertLess(safe, verify)
 
     def test_wrong_package_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

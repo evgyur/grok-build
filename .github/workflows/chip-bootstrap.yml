@@ -46,7 +46,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Verify pinned source identity
-        run: python3 scripts/chip/verify_bootstrap.py
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          python3 scripts/chip/verify_bootstrap.py
       - name: Install locked DotSlash
         run: cargo install --locked dotslash
       - name: Check unmodified source
