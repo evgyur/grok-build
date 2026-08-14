@@ -1484,7 +1484,7 @@ pub fn apply_sandbox(
     sandbox_config: Option<&crate::agent::config::SandboxSettingsConfig>,
     cli_profile: Option<&str>,
     cwd: Option<&std::path::Path>,
-) {
+) -> anyhow::Result<()> {
     let owned;
     let config = match sandbox_config {
         Some(c) => c,
@@ -1536,7 +1536,7 @@ pub fn apply_sandbox(
                         "bwrap exec failed: {err}. Install bubblewrap with \
                          `apt install -y bubblewrap`."
                     ));
-                    std::process::exit(1);
+                    anyhow::bail!("sandbox deny-list enforcement failed: bwrap exec failed: {err}");
                 }
                 eprintln!(
                     "WARNING: bwrap exec failed: {err}. \
@@ -1553,7 +1553,7 @@ pub fn apply_sandbox(
                          mounts are missing or writable ({e}); refusing to start \
                          (possible __GROK_INSIDE_BWRAP spoof)"
                     );
-                    std::process::exit(1);
+                    anyhow::bail!("sandbox bwrap evidence failed: {e}");
                 }
             }
             None if requires_bwrap => {
@@ -1561,7 +1561,7 @@ pub fn apply_sandbox(
                     "the deny list could not be prepared; see the error above \
                      for the specific cause.",
                 );
-                std::process::exit(1);
+                anyhow::bail!("sandbox deny-list enforcement could not be prepared");
             }
             None => {}
         }
@@ -1593,7 +1593,7 @@ pub fn apply_sandbox(
                      protections missing.",
                     sandbox.profile()
                 );
-                std::process::exit(1);
+                anyhow::bail!("sandbox profile '{}' was not enforced", sandbox.profile());
             }
             #[cfg(target_os = "linux")]
             if requires_hook_write_deny
@@ -1604,11 +1604,12 @@ pub fn apply_sandbox(
                     "error: required hook write-deny mounts not verified after apply ({e}); \
                      refusing to start"
                 );
-                std::process::exit(1);
+                anyhow::bail!("sandbox hook write-deny evidence failed: {e}");
             }
         }
         sandbox.install();
     }
+    Ok(())
 }
 pub use xai_grok_workspace::project_config::find_project_configs;
 /// Resolve the effective `[plugins]` config for a working directory the same
