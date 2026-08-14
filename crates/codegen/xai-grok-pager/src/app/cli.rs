@@ -120,6 +120,15 @@ See ~/.grok/README.md for more information.
         #[arg(long, hide = true)]
         auto: bool,
     },
+    /// Run one request through the stable Chip worker contract
+    Worker {
+        /// Read the request from this JSON file, or stdin when omitted.
+        #[arg(long, value_name = "PATH", value_hint = ValueHint::FilePath)]
+        request: Option<PathBuf>,
+        /// Write the receipt atomically to this JSON file.
+        #[arg(long, value_name = "PATH", value_hint = ValueHint::FilePath)]
+        receipt: PathBuf,
+    },
     /// Print version information
     #[command(visible_alias = "v")]
     Version {
