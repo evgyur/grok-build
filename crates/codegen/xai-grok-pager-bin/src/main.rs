@@ -47,6 +47,11 @@ use xai_grok_shell::leader::{
     ControlPayload, LeaderClient, LeaderEnvUrls, connect_or_spawn, socket_path_for_ws_url,
 };
 use xai_grok_update::{UpdateConfig, auto_update, enforce_version_policy_or_exit};
+
+mod worker_contract;
+
+const EXTERNALLY_MANAGED_ERROR: &str =
+    "EXTERNALLY_MANAGED: Chip fork updates are managed by chip-grok";
 /// Apply headless args to an existing config, only overriding values that are
 /// explicitly set. This allows environment defaults to be preserved when
 /// specific args are not provided.
@@ -1947,6 +1952,10 @@ async fn async_main(args: PagerArgs) -> Result<()> {
     if let Some(Command::Wrap(ref wrap_args)) = args.command {
         return xai_grok_pager::wrap_cmd::run(wrap_args);
     }
+    if let Some(Command::Worker { request, receipt }) = &args.command {
+        init_tracing_simple(HEADLESS_ENTRYPOINT);
+        return worker_contract::run(request.as_deref(), receipt).await;
+    }
     args.pin_local_resume_target()?;
     let saved_profile = args.saved_resume_profile();
     let sandbox_profile_arg = match args.startup_sandbox_profile(saved_profile.as_deref()) {
@@ -1964,7 +1973,7 @@ async fn async_main(args: PagerArgs) -> Result<()> {
         None,
         sandbox_profile_arg.as_deref(),
         args.cwd.as_deref(),
-    );
+    )?;
     flag_dashboard_at_startup_if_requested(&mut args)?;
     let is_interactive = args.command.is_none()
         && args.single.is_none()
@@ -1980,10 +1989,7 @@ async fn async_main(args: PagerArgs) -> Result<()> {
         match command {
             Command::Version { json } => {
                 if json {
-                    let payload = serde_json::json!({
-                        "currentVersion": env!("VERSION_WITH_COMMIT"),
-                        "channel": xai_grok_update::channel_name().unwrap_or("unknown"),
-                    });
+                    let payload = worker_contract::version_json();
                     println!("{}", serde_json::to_string(&payload)?);
                 } else {
                     write_version(
@@ -2096,31 +2102,9 @@ async fn async_main(args: PagerArgs) -> Result<()> {
             Command::Memory(memory_args) => {
                 return xai_grok_pager::memory_cmd::run(memory_args);
             }
-            Command::Update {
-                check,
-                json,
-                force_reinstall,
-                version,
-                alpha,
-                stable,
-                enterprise,
-                trigger,
-                auto,
-            } => {
-                init_tracing_simple("cli");
-                let _otel_guard = xai_grok_telemetry::otel_layer::otel_guard();
-                let channel_switch = get_channel_switch(alpha, stable, enterprise);
-                let trigger = resolve_update_trigger(trigger.as_deref(), auto);
-                return run_update_command(
-                    check,
-                    json,
-                    force_reinstall,
-                    version,
-                    channel_switch,
-                    trigger,
-                    &update_config,
-                )
-                .await;
+            Command::Update { .. } => anyhow::bail!(EXTERNALLY_MANAGED_ERROR),
+            Command::Worker { .. } => {
+                unreachable!("worker was consumed before sandbox startup")
             }
             Command::Login {
                 legacy: _,
@@ -2334,15 +2318,8 @@ fn build_update_config() -> UpdateConfig {
 }
 /// Central gate for auto-update checks; add new suppression rules here,
 /// not at call sites.
-fn should_check_for_updates(no_auto_update_flag: bool) -> bool {
-    if cfg!(debug_assertions) {
-        return false;
-    }
-    if no_auto_update_flag {
-        return false;
-    }
-    !std::env::var_os("GROK_DISABLE_AUTOUPDATER")
-        .is_some_and(|v| env_flag_enabled(&v.to_string_lossy()))
+fn should_check_for_updates(_no_auto_update_flag: bool) -> bool {
+    false
 }
 /// Gate for the stdio agent's background auto-update: only the direct stdio
 /// agent, from the managed install. Other modes update in `run_agent_command`.
